@@ -1,4 +1,4 @@
-
+[![Rust](https://github.com/keshiba/super-chat/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/keshiba/super-chat/actions/workflows/rust.yml)
 
 # SuperChat (WIP)
 
