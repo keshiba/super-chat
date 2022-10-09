@@ -10,3 +10,5 @@ libp2p = { version = "0.48", features = ["tcp-tokio", "mdns-tokio"] }
 async-std = { version = "1.12.0" }
 log = "0.4"
 env_logger = { version = "0.9.1" }
+tui = "0.19"
+crossterm = "0.25"

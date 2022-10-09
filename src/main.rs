@@ -2,6 +2,7 @@ extern crate env_logger;
 #[macro_use] extern crate log;
 
 mod p2p;
+mod app;
 
 use async_std::{task};
 use log::LevelFilter;
@@ -9,6 +10,7 @@ use std::error::Error;
 use env_logger::Builder;
 
 fn main() {
+    app::start_app();
     task::block_on(async_main());
 }
 
