@@ -1,12 +1,12 @@
 extern crate env_logger;
 #[macro_use] extern crate log;
 
+mod p2p;
+
 use async_std::{task};
 use log::LevelFilter;
 use std::error::Error;
 use env_logger::Builder;
-
-use superchat::*;
 
 fn main() {
     task::block_on(async_main());
@@ -19,5 +19,5 @@ async fn async_main() -> Result<(), Box<dyn Error>> {
         .filter(None, LevelFilter::Info)
         .init();
 
-    init().await
+    p2p::init().await
 }
