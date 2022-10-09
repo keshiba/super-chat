@@ -4,9 +4,9 @@ extern crate env_logger;
 use async_std::{task};
 use log::LevelFilter;
 use std::error::Error;
-use env_logger::{ Builder, Env };
+use env_logger::Builder;
 
-use libp2p_exercise::*;
+use superchat::*;
 
 fn main() {
     task::block_on(async_main());
