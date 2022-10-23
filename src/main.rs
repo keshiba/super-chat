@@ -1,23 +1,23 @@
 extern crate env_logger;
 #[macro_use] extern crate log;
 
-use async_std::{task};
 use log::LevelFilter;
 use std::error::Error;
 use env_logger::Builder;
 
-use superchat::*;
+mod p2p;
+mod ui;
+mod state;
+mod app;
 
-fn main() {
-    task::block_on(async_main());
-}
+fn main() -> Result<(), Box<dyn Error + 'static>> {
 
-async fn async_main() -> Result<(), Box<dyn Error>> {
+    // let mut log_builder = Builder::from_default_env();
+    // log_builder
+    //     .filter(None, LevelFilter::Info)
+    //     .init();
 
-    let mut log_builder = Builder::from_default_env();
-    log_builder
-        .filter(None, LevelFilter::Info)
-        .init();
+    app::start();
 
-    init().await
+    Ok(())
 }
