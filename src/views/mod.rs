@@ -29,7 +29,7 @@ impl ViewFactory {
 
         match view_config.view_type {
             ViewType::LoginView => Box::new(login::LoginView::new(&view_config)),
-            ViewType::ChatWindowView => Box::new(chat::ChatWindowView::new()),
+            ViewType::ChatWindowView => Box::new(chat::ChatWindowView::new(&view_config)),
         }
     }
 }

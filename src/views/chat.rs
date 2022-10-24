@@ -1,19 +1,27 @@
+use std::sync::mpsc;
+
 use cursive::{views::{ResizedView, LinearLayout, Panel, ScrollView, SelectView, EditView, TextView}, view::{self, ViewWrapper, Resizable, Nameable}};
 
 use crate::controller::ControllerMessage;
 
-use super::AppView;
+use super::{AppView, ViewConfig};
 
 pub const INPUTTEXTAREA_NAME: &str = "INPUT_TEXT_AREA";
 pub const CHATWINDOWPANEL_NAME: &str = "CHAT_WINDOW_PANEL";
 pub const CHATSELECTVIEW: &str = "CHAT_SELECT_VIEW";
 
-pub struct ChatWindowView;
+pub struct ChatWindowView {
+
+    pub controller_tx: mpsc::Sender<ControllerMessage>
+}
 
 
 impl ChatWindowView {
-    pub fn new() -> Self {
-        ChatWindowView {}
+
+    pub fn new(view_config: &ViewConfig) -> Self {
+        ChatWindowView { 
+            controller_tx: view_config.controller_tx.clone()
+        }
     }
 }
 
@@ -36,6 +44,7 @@ impl AppView for ChatWindowView {
         let chatwindow_panel =
             ResizedView::with_full_screen(Panel::new(scroll_view)).with_name(CHATWINDOWPANEL_NAME);
 
+        let controller_tx = self.controller_tx.clone();
         let input_textarea = EditView::new()
             .disabled()
             .on_submit(move |siv, text| {
@@ -45,9 +54,9 @@ impl AppView for ChatWindowView {
                         txt.set_content("");
                     },
                 );
-                // net_sender_clone
-                //     .send(ControllerMessage::UpdatedInputAvailable(text.to_string()))
-                //     .unwrap();
+                controller_tx 
+                    .send(ControllerMessage::UpdatedInputAvailable(text.to_string()))
+                    .unwrap();
             })
             .with_name(INPUTTEXTAREA_NAME);
         let input_panel = Panel::new(input_textarea);
