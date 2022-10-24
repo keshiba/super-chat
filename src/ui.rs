@@ -1,23 +1,15 @@
-use cursive::event::Event;
-use cursive::theme::Color;
-use cursive::theme::PaletteColor;
-use cursive::view;
-use cursive::view::Nameable;
-use cursive::view::Resizable;
-use cursive::views::EditView;
-use cursive::views::LinearLayout;
-use cursive::views::Panel;
-use cursive::views::ResizedView;
-use cursive::views::ScrollView;
-use cursive::views::SelectView;
-use cursive::views::TextView;
-use cursive::Cursive;
-use cursive::CursiveRunnable;
-use cursive::CursiveRunner;
 use std::sync::mpsc;
+use cursive::{
+    event::Event,
+    theme::{ Color, PaletteColor },
+    view::{ self, Nameable, Resizable },
+    views::{ EditView, LinearLayout, Panel, ResizedView, ScrollView, SelectView, TextView },
+    Cursive,
+    CursiveRunnable,
+    CursiveRunner
+};
 
 use crate::controller::ControllerMessage;
-
 use crate::state;
 
 pub const INPUTTEXTAREA_NAME: &str = "INPUT_TEXT_AREA";
@@ -36,7 +28,7 @@ pub enum UiMessage {
 }
 
 impl Ui {
-    pub fn new<'a>(controller_tx: mpsc::Sender<ControllerMessage>) -> Ui {
+    pub fn new(controller_tx: mpsc::Sender<ControllerMessage>) -> Ui {
         let (ui_tx, ui_rx) = mpsc::channel::<UiMessage>();
         let mut ui = Ui {
             cursive: cursive::default().into_runner(),
@@ -99,7 +91,7 @@ impl Ui {
                 (PaletteColor::View, Color::TerminalDefault),
                 (PaletteColor::Primary, Color::TerminalDefault),
                 (PaletteColor::TitlePrimary, Color::TerminalDefault),
-                (PaletteColor::TitleSecondary, Color::TerminalDefault),
+                (PaletteColor::TitleSecondary, Color::TerminalDefault)
             ]);
         });
 
