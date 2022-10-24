@@ -1,24 +1,23 @@
 use std::sync::mpsc;
 
-use crate::ui::{UiMessage, Ui};
-
+use crate::ui::{Ui, UiMessage};
 
 pub struct Controller {
     rx: mpsc::Receiver<ControllerMessage>,
-    ui: Ui
+    ui: Ui,
 }
 
 pub enum ControllerMessage {
-    UpdatedInputAvailable(String)
+    UpdatedInputAvailable(String),
+    SwitchView
 }
 
 impl Controller {
     pub fn new() -> Result<Controller, String> {
-    
         let (tx, rx) = mpsc::channel::<ControllerMessage>();
-        Ok(Controller { 
-            rx: rx, 
-            ui: Ui::new(tx.clone()) 
+        Ok(Controller {
+            rx: rx,
+            ui: Ui::new(tx.clone()),
         })
     }
 
@@ -27,14 +26,11 @@ impl Controller {
             while let Some(message) = self.rx.try_iter().next() {
                 match message {
                     ControllerMessage::UpdatedInputAvailable(text) => {
-                        self.ui
-                            .ui_tx
-                            .send(UiMessage::UpdateOutput(text))
-                            .unwrap();
-                    }
+                        self.ui.ui_tx.send(UiMessage::UpdateOutput(text)).unwrap();
+                    },
+                    _ => {}
                 };
             }
-            self.ui.step();
         }
     }
 }

@@ -2,14 +2,14 @@ use std::sync::mpsc;
 use cursive::{
     event::Event,
     theme::{ Color, PaletteColor },
-    view::{ self, Nameable, Resizable },
-    views::{ EditView, LinearLayout, Panel, ResizedView, ScrollView, SelectView, TextView },
+    view,
+    views::{ EditView, SelectView },
     Cursive,
     CursiveRunnable,
     CursiveRunner
 };
 
-use crate::controller::ControllerMessage;
+use crate::{controller::ControllerMessage, views::{AppView, self}};
 use crate::state;
 
 pub const INPUTTEXTAREA_NAME: &str = "INPUT_TEXT_AREA";
@@ -21,6 +21,7 @@ pub struct Ui {
     ui_rx: mpsc::Receiver<UiMessage>,
     controller_tx: mpsc::Sender<ControllerMessage>,
     pub ui_tx: mpsc::Sender<UiMessage>,
+    view: Box<dyn AppView>
 }
 
 pub enum UiMessage {
@@ -30,11 +31,13 @@ pub enum UiMessage {
 impl Ui {
     pub fn new(controller_tx: mpsc::Sender<ControllerMessage>) -> Ui {
         let (ui_tx, ui_rx) = mpsc::channel::<UiMessage>();
+        let initial_view = views::ViewFactory::get(&views::ViewType::LoginView);
         let mut ui = Ui {
             cursive: cursive::default().into_runner(),
             ui_tx: ui_tx,
             ui_rx: ui_rx,
             controller_tx: controller_tx,
+            view: initial_view
         };
 
         ui.build();
@@ -95,45 +98,11 @@ impl Ui {
             ]);
         });
 
-        let mut chatwindow_list = SelectView::new();
-        self.cursive
-            .with_user_data(|app_state: &mut state::AppState| {
-                for message in &app_state.data.messages {
-                    chatwindow_list.add_item_str(format! {"{}: {}", message.0, message.1});
-                }
-            });
+        if let Ok(that_view) = self.view.build() {
+            self.cursive
+                .add_layer(that_view);
+        }
 
-        let scroll_view = ScrollView::new(chatwindow_list.with_name(CHATSELECTVIEW))
-            .scroll_strategy(cursive::view::ScrollStrategy::StickToBottom)
-            .show_scrollbars(true);
-
-        let chatwindow_panel =
-            ResizedView::with_full_screen(Panel::new(scroll_view)).with_name(CHATWINDOWPANEL_NAME);
-
-        let input_textarea = EditView::new()
-            .disabled()
-            .on_submit(move |siv, text| {
-                siv.call_on(
-                    &view::Selector::Name(INPUTTEXTAREA_NAME),
-                    |txt: &mut EditView| {
-                        txt.set_content("");
-                    },
-                );
-                net_sender_clone
-                    .send(ControllerMessage::UpdatedInputAvailable(text.to_string()))
-                    .unwrap();
-            })
-            .with_name(INPUTTEXTAREA_NAME);
-        let input_panel = Panel::new(input_textarea);
-        let hint_panel = Panel::new(TextView::new("[i] - insert, [q] - quit"));
-
-        let panels_list = LinearLayout::vertical()
-            .child(chatwindow_panel.full_screen())
-            .child(input_panel.fixed_height(3))
-            .child(hint_panel.fixed_height(3));
-
-        self.cursive
-            .add_layer(ResizedView::with_full_screen(panels_list));
         self.cursive
             .add_global_callback('`', Cursive::toggle_debug_console);
         self.cursive.add_global_callback('q', Cursive::quit);
