@@ -9,6 +9,7 @@ mod p2p;
 mod ui;
 mod state;
 mod app;
+mod controller;
 
 fn main() -> Result<(), Box<dyn Error + 'static>> {
 
