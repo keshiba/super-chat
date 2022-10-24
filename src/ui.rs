@@ -9,7 +9,7 @@ use cursive::{
     CursiveRunner
 };
 
-use crate::{controller::ControllerMessage, views::{AppView, self}};
+use crate::{controller::ControllerMessage, views::{AppView, self, ViewConfig}};
 use crate::state;
 
 pub const INPUTTEXTAREA_NAME: &str = "INPUT_TEXT_AREA";
@@ -21,26 +21,24 @@ pub struct Ui {
     ui_rx: mpsc::Receiver<UiMessage>,
     controller_tx: mpsc::Sender<ControllerMessage>,
     pub ui_tx: mpsc::Sender<UiMessage>,
-    view: Box<dyn AppView>
 }
 
 pub enum UiMessage {
     UpdateOutput(String),
+    SwitchView(views::ViewType)
 }
 
 impl Ui {
-    pub fn new(controller_tx: mpsc::Sender<ControllerMessage>) -> Ui {
+    pub fn new(controller_tx: mpsc::Sender<ControllerMessage>, initial_view_type: views::ViewType) -> Self {
         let (ui_tx, ui_rx) = mpsc::channel::<UiMessage>();
-        let initial_view = views::ViewFactory::get(&views::ViewType::LoginView);
         let mut ui = Ui {
             cursive: cursive::default().into_runner(),
             ui_tx: ui_tx,
             ui_rx: ui_rx,
             controller_tx: controller_tx,
-            view: initial_view
         };
 
-        ui.build();
+        ui.load_view(initial_view_type);
         ui.cursive.refresh();
 
         ui
@@ -63,6 +61,9 @@ impl Ui {
                         should_refresh = true;
                         select_view.add_item_str(update_message);
                     }
+                },
+                UiMessage::SwitchView(view_type) => {
+                    self.switch(view_type);
                 }
             }
         }
@@ -74,8 +75,8 @@ impl Ui {
         true
     }
 
-    fn build(&mut self) {
-        let net_sender_clone = self.controller_tx.clone();
+    fn load_view(&mut self, view_type: views::ViewType) {
+
         let mut app_state = state::AppState::default();
 
         app_state.data.messages = vec![
@@ -98,10 +99,7 @@ impl Ui {
             ]);
         });
 
-        if let Ok(that_view) = self.view.build() {
-            self.cursive
-                .add_layer(that_view);
-        }
+        self.build(view_type);
 
         self.cursive
             .add_global_callback('`', Cursive::toggle_debug_console);
@@ -123,5 +121,26 @@ impl Ui {
                     },
                 );
             });
+    }
+
+    fn build(&mut self, view_type: views::ViewType) {
+
+        let view_config = ViewConfig {
+            view_type: view_type,
+            controller_tx: self.controller_tx.clone()
+        };
+
+        let current_view = views::ViewFactory::get(&view_config);
+        if let Ok(that_view) = current_view.build() {
+            self.cursive
+                .add_layer(that_view);
+        }
+    }
+
+    fn switch(&mut self, view_type: views::ViewType) {
+
+        self.cursive.pop_layer();
+        self.build(view_type);
+        self.cursive.refresh();
     }
 }
